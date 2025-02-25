@@ -1,22 +1,23 @@
-'use client'
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import GridDistortion from "@/GridDistortion/GridDistortion";
-import { Alert } from "@/components/ui/alert";
+'use client';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import GridDistortion from '@/GridDistortion/GridDistortion';
+import { Alert } from '@/components/ui/alert';
 
 export default function Home() {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
+  const [responseData, setResponseData] = useState(null);
+  const [error, setError] = useState(null);
 
-  // To store/set user input
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
   };
 
-  // TO send user input to langflow
   const onSubmitHandle = async () => {
+    setError(null); // Reset error state
     try {
-      const response = await fetch('/api/submit', {
+      const response = await fetch('/api/movies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -25,12 +26,14 @@ export default function Home() {
       });
 
       if (response.ok) {
-        console.log("Data sent successfully");
+        const data = await response.json();
+        setResponseData(data);
       } else {
-        console.error("Failed to send data");
+        setError('Failed to fetch data from the server.');
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
+      setError('An error occurred while fetching data.');
     }
   };
 
@@ -39,12 +42,29 @@ export default function Home() {
       <GridDistortion className="absolute inset-0 z-[-1]" />
       <div className="flex items-center gap-2 w-full">
         <Input
-          className="border-yellow-2 text-white h-12"
+          className="border-yellow-200 text-white h-12"
           value={inputValue}
           onChange={handleInputChange}
         />
-        <Button onClick={onSubmitHandle} className='h-12 w-12'>+</Button>
+        <Button onClick={onSubmitHandle} className="h-12 w-12">
+          +
+        </Button>
       </div>
+      {error && (
+        <Alert className="mt-4" variant="destructive">
+          {error}
+        </Alert>
+      )}
+      {responseData && (
+        <div className="mt-4 p-6 bg-white border border-gray-200 rounded-lg shadow-md w-full">
+          <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900">
+            Response
+          </h5>
+          <p className="font-normal text-gray-700">
+            {JSON.stringify(responseData, null, 2)}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
